@@ -30,8 +30,6 @@ class DHT11:
         if utime.ticks_diff(current_ticks, self._last_measure) < MIN_INTERVAL_US and (
             self._temperature > -1 or self._humidity > -1
         ):
-            # Less than a second since last read, which is too soon according
-            # to the datasheet
             return
  
         self._send_init_signal()
@@ -102,19 +100,16 @@ class DHT11:
             3: Decimal temperature data
             4: Checksum
         """
-        # Convert the pulses to 40 bits
         binary = 0
         for idx in range(0, len(pulses), 2):
             binary = binary << 1 | int(pulses[idx] > HIGH_LEVEL)
  
-        # Split into 5 bytes
         buffer = array.array("B")
         for shift in range(4, -1, -1):
             buffer.append(binary >> shift * 8 & 0xFF)
         return buffer
  
     def _verify_checksum(self, buffer):
-        # Calculate checksum
         checksum = 0
         for buf in buffer[0:4]:
             checksum += buf
